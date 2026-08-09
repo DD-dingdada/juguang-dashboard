@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>叮哒-沈阳账号数据监控</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #0f1419;
+    color: #e7e9ea;
+    min-height: 100vh;
+    padding: 32px 24px 60px;
+  }
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    max-width: 1300px; margin: 0 auto 28px;
+  }
+  .header h1 { font-size: 22px; font-weight: 600; color: #fff; }
+  .header-right { display: flex; align-items: center; gap: 14px; }
+  .update-time { font-size: 13px; color: #71767b; }
+  .btn {
+    background: #1d9bf0; color: #fff; border: none; padding: 8px 20px;
+    border-radius: 20px; font-size: 14px; cursor: pointer;
+    font-weight: 500; transition: background 0.2s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .btn:hover { background: #1a8cd8; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn .spinner {
+    width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.3);
+    border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ===== 消费数据卡片 ===== */
+  .section-title {
+    max-width: 1300px; margin: 0 auto 16px;
+    font-size: 15px; font-weight: 600; color: #71767b;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+  .grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 18px; max-width: 1300px; margin: 0 auto 36px;
+  }
+  .card {
+    background: #1a1f26; border-radius: 16px; padding: 24px;
+    border: 1px solid #2f3336; position: relative; overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  .card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  }
+  .card.laopin::before { background: #3b82f6; }
+  .card.xinpin::before { background: #10b981; }
+  .card.zhengrui::before { background: #f59e0b; }
+  .card-name {
+    font-size: 18px; font-weight: 700; margin-bottom: 20px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-name .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .card.laopin .dot { background: #3b82f6; }
+  .card.xinpin .dot { background: #10b981; }
+  .card.zhengrui .dot { background: #f59e0b; }
+  .metrics { display: flex; flex-direction: column; gap: 16px; }
+  .metric { }
+  .metric-label { font-size: 12px; color: #71767b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .metric-value { font-size: 28px; font-weight: 700; }
+  .metric-value.cost { color: #e74c3c; }
+  .metric-value.price { color: #f59e0b; }
+  .metric-value.leads { color: #10b981; }
+  .metric-sub {
+    font-size: 11px; color: #536471; margin-top: 2px;
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .metric-sub span { background: #27303a; padding: 1px 6px; border-radius: 4px; }
+
+  /* ===== 排班卡片 ===== */
+  .schedule-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 20px; max-width: 1300px; margin: 0 auto;
+  }
+  .sc-card {
+    background: #1a1f26; border-radius: 16px; padding: 22px 24px;
+    border: 1px solid #2f3336; position: relative; overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .sc-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  }
+  .sc-card.zr::before { background: #f59e0b; }
+  .sc-card.lqp::before { background: #3b82f6; }
+  .sc-card.xqp::before { background: #10b981; }
+
+  .sc-card-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 18px;
+  }
+  .sc-card-name {
+    font-size: 16px; font-weight: 700; color: #fff;
+  }
+  .sc-card-badge {
+    font-size: 11px; color: #71767b; background: #27303a;
+    padding: 2px 10px; border-radius: 10px;
+  }
+
+  /* 当前承接人 - 大幅展示 */
+  .sc-current-section {
+    background: #1e2a36; border-radius: 10px; padding: 16px 18px;
+    margin-bottom: 14px; border: 1px solid #2f444e;
+  }
+  .sc-current-label {
+    font-size: 11px; color: #536471; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;
+  }
+  .sc-current-name {
+    font-size: 26px; font-weight: 800; color: #fff; letter-spacing: 1px;
+  }
+  .sc-current-budget {
+    font-size: 13px; color: #f59e0b; margin-top: 4px; font-weight: 600;
+  }
+
+  /* 进度条 */
+  .sc-progress-wrap { margin: 0 0 14px 0; }
+  .sc-progress-bar {
+    height: 6px; background: #2f3336; border-radius: 3px; overflow: hidden;
+  }
+  .sc-progress-fill {
+    height: 100%; border-radius: 3px; transition: width 0.5s;
+  }
+  .sc-progress-fill.zr { background: #f59e0b; }
+  .sc-progress-fill.lqp { background: #3b82f6; }
+  .sc-progress-fill.xqp { background: #10b981; }
+  .sc-progress-info {
+    display: flex; justify-content: space-between; margin-top: 5px;
+    font-size: 11px; color: #71767b;
+  }
+
+  /* 下一棒 */
+  .sc-next-section {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 14px; background: #27303a; border-radius: 8px;
+    margin-bottom: 12px;
+  }
+  .sc-next-label { font-size: 12px; color: #71767b; }
+  .sc-next-name { font-size: 15px; font-weight: 700; color: #e7e9ea; }
+  .sc-next-budget { font-size: 14px; font-weight: 700; color: #f59e0b; }
+
+  /* 所有老师折叠列表 */
+  .sc-all-toggle {
+    font-size: 11px; color: #536471; cursor: pointer; margin-bottom: 6px;
+    user-select: none; display: flex; align-items: center; gap: 4px;
+  }
+  .sc-all-toggle:hover { color: #1d9bf0; }
+  .sc-all-list {
+    display: flex; flex-direction: column; gap: 3px;
+    max-height: 260px; overflow-y: auto;
+  }
+  .sc-all-list::-webkit-scrollbar { width: 4px; }
+  .sc-all-list::-webkit-scrollbar-thumb { background: #2f3336; border-radius: 2px; }
+  .sc-all-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 3px 8px; border-radius: 4px; font-size: 12px;
+  }
+  .sc-all-item.now { background: #1a3a5c; }
+  .sc-all-item .t-name { color: #e7e9ea; }
+  .sc-all-item .t-budget { color: #f59e0b; font-size: 11px; font-weight: 600; }
+
+  .sc-footer {
+    margin-top: 12px; padding-top: 10px; border-top: 1px solid #2f3336;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px;
+  }
+  .sc-footer .total { color: #71767b; }
+  .sc-footer .total-val { color: #f59e0b; font-weight: 600; }
+  .sc-empty {
+    text-align: center; color: #536471; font-size: 13px; padding: 20px;
+  }
+
+  /* Loading / error */
+  .loading-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15,20,25,.6); display: flex; align-items: center;
+    justify-content: center; z-index: 100; transition: opacity 0.3s;
+  }
+  .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+  .loading-box {
+    background: #1a1f26; border-radius: 12px; padding: 24px 36px;
+    text-align: center; border: 1px solid #2f3336;
+  }
+  .loading-box .spinner-big {
+    width: 32px; height: 32px; border: 3px solid #2f3336;
+    border-top-color: #1d9bf0; border-radius: 50%; animation: spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+  }
+  .error-msg { color: #e74c3c; font-size: 13px; text-align: center; margin-top: 8px; }
+  .auto-tag { font-size: 11px; color: #536471; background: #27303a; padding: 2px 8px; border-radius: 10px; }
+
+  /* 进度条 */
+  .sc-progress-wrap { margin-top: 10px; }
+  .sc-progress-bar {
+    height: 4px; background: #2f3336; border-radius: 2px; overflow: hidden;
+  }
+  .sc-progress-fill {
+    height: 100%; border-radius: 2px; transition: width 0.5s;
+  }
+  .sc-progress-fill.tj { background: #e74c3c; }
+  .sc-progress-fill.sy { background: #3b82f6; }
+  .sc-progress-fill.xa { background: #10b981; }
+  .sc-progress-fill.jn { background: #f59e0b; }
+  .sc-progress-info {
+    display: flex; justify-content: space-between; margin-top: 4px;
+    font-size: 10px; color: #536471;
+  }
+
+  @media (max-width: 800px) {
+    .grid { grid-template-columns: 1fr; }
+    .schedule-grid { grid-template-columns: 1fr; }
+    .header { flex-direction: column; gap: 12px; align-items: flex-start; }
+  }
+</style>
+<script>
+window.__SPEND_DATA__ = [{"name": "老全品", "cost": 6842.02, "cost_str": "6,842.02", "price": 855.25, "price_str": "855.25", "leads": 8, "color": "#3b82f6", "details": [{"name": "希望名师好课推荐lk-沈阳", "cost": 4225.03, "leads": 6}, {"name": "学而思网校优课lk-沈阳增量户", "cost": 2616.99, "leads": 2}]}, {"name": "新全品", "cost": 1288.02, "cost_str": "1,288.02", "price": 429.34, "price_str": "429.34", "leads": 3, "color": "#10b981", "details": [{"name": "学而思网校优课甄选lk-沈阳", "cost": 1288.02, "leads": 3}, {"name": "学而思网校优课甄选lk-沈阳视频户", "cost": 0.0, "leads": 0}]}, {"name": "郑瑞", "cost": 3695.07, "cost_str": "3,695.07", "price": 461.88, "price_str": "461.88", "leads": 8, "color": "#f59e0b", "details": [{"name": "郑瑞线上化学lk-沈阳", "cost": 1809.83, "leads": 4}, {"name": "郑瑞线上化学lk-沈阳增量户", "cost": 1885.24, "leads": 4}]}];
+window.__SCHEDULE_DATA__ = {"date": "2026-08-09", "row": 255, "accounts": [{"name": "郑瑞线上化学lk-沈阳", "city": "沈阳", "teachers": [{"name": "杨乙", "budget": 3000, "cumulative": 3000}, {"name": "吴佳旭", "budget": 3000, "cumulative": 6000}], "total_budget": 6000, "teacher_count": 2, "duty": {"current": "吴佳旭", "current_start": 3000, "current_end": 6000, "current_budget": 3000, "used": 695, "remaining": 2305, "next": "最后一棒", "next_budget": null, "next_start": null, "next_end": null, "progress": 23, "status": "进行中", "all_teachers": ["杨乙", "吴佳旭"]}, "spend": 3695.07}, {"name": "希望名师好课推荐lk-沈阳", "city": "沈阳", "teachers": [{"name": "杨乙", "budget": 4000, "cumulative": 4000}, {"name": "李林瑞", "budget": 4000, "cumulative": 8000}, {"name": "潘雨杉", "budget": 4000, "cumulative": 12000}, {"name": "安阳", "budget": 4000, "cumulative": 16000}, {"name": "付诗童", "budget": 4000, "cumulative": 20000}, {"name": "吴佳旭", "budget": 4000, "cumulative": 24000}, {"name": "李欣颖", "budget": 4000, "cumulative": 28000}, {"name": "胡宇琪", "budget": 4000, "cumulative": 32000}], "total_budget": 32000, "teacher_count": 8, "duty": {"current": "李林瑞", "current_start": 4000, "current_end": 8000, "current_budget": 4000, "used": 2842, "remaining": 1158, "next": "潘雨杉", "next_budget": 4000, "next_start": 8000, "next_end": 12000, "progress": 71, "status": "进行中", "all_teachers": ["杨乙", "李林瑞", "潘雨杉", "安阳", "付诗童", "吴佳旭", "李欣颖", "胡宇琪"]}, "spend": 6842.02}, {"name": "学而思网校优课甄选", "city": "沈阳", "teachers": [{"name": "付诗童", "budget": 2000, "cumulative": 2000}], "total_budget": 2000, "teacher_count": 1, "duty": {"current": "付诗童", "current_start": 0, "current_end": 2000, "current_budget": 2000, "used": 1288, "remaining": 712, "next": "最后一棒", "next_budget": null, "next_start": null, "next_end": null, "progress": 64, "status": "进行中", "all_teachers": ["付诗童"]}, "spend": 1288.02}]};
+window.__SNAPSHOT_TIME__ = "2026-08-09 19:52:52";
+</script>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-box">
+    <div class="spinner-big"></div>
+    <div style="color:#71767b;font-size:14px;">正在抓取数据...</div>
+  </div>
+</div>
+
+<div class="header">
+  <h1>🔔 叮哒-沈阳账号数据监控</h1>
+  <div class="header-right">
+    <span class="auto-tag" id="autoTag">⏱ 每小时自动刷新</span>
+    <span class="update-time" id="updateTime">--</span>
+    <button class="btn" id="refreshBtn" onclick="refreshAll()">
+      🔄 刷新
+    </button>
+  </div>
+</div>
+
+<!-- ===== 消费数据 ===== -->
+<div class="section-title">📊 投放数据（星火）</div>
+<div class="grid" id="grid">
+  <div class="card laopin">
+    <div class="card-name"><span class="dot"></span>老全品</div>
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-label">总消费</div>
+        <div class="metric-value cost">¥ --</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">留资成本</div>
+        <div class="metric-value price">¥ --</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">留资数</div>
+        <div class="metric-value leads">--</div>
+      </div>
+      <div class="metric-sub" id="detail-laopin"></div>
+    </div>
+  </div>
+  <div class="card zhengrui">
+    <div class="card-name"><span class="dot"></span>郑瑞</div>
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-label">总消费</div>
+        <div class="metric-value cost">¥ --</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">留资成本</div>
+        <div class="metric-value price">¥ --</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">留资数</div>
+        <div class="metric-value leads">--</div>
+      </div>
+      <div class="metric-sub" id="detail-zhengrui"></div>
+    </div>
+  </div>
+  <div class="card xinpin">
+    <div class="card-name"><span class="dot"></span>新全品</div>
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-label">总消费</div>
+        <div class="metric-value cost">¥ --</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">留资成本</div>
+        <div class="metric-value price">¥ --</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">留资数</div>
+        <div class="metric-value leads">--</div>
+      </div>
+      <div class="metric-sub" id="detail-xinpin"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 博主排班 ===== -->
+<div class="section-title">📋 博主排班（今日接客资）</div>
+<div class="schedule-grid" id="scheduleGrid">
+  <div class="sc-card"><div class="sc-empty">加载中...</div></div>
+</div>
+
+<div class="error-msg" id="errorMsg" style="display:none"></div>
+
+<script>
+const DATA_API = '/api/data';
+const SCHEDULE_API = '/api/schedule';
+const REFRESH_INTERVAL = 3600000;
+
+let timer = null;
+let countdownTimer = null;
+let oldSpendData = null;
+let oldScheduleData = null;
+
+/* ===== 倒计时 ===== */
+function msUntilNextHour() {
+  const now = new Date();
+  const next = new Date(now);
+  next.setHours(next.getHours() + 1, 0, 0, 0);
+  return next - now;
+}
+
+function updateCountdown() {
+  const ms = msUntilNextHour();
+  const m = Math.floor(ms / 60000);
+  const s = Math.floor((ms % 60000) / 1000);
+  document.getElementById('autoTag').textContent =
+    '⏱ ' + m + '分' + s + '秒后整点刷新';
+}
+
+/* ===== 消费数据 ===== */
+async function refreshSpend(silent) {
+  const btn = document.getElementById('refreshBtn');
+  const overlay = document.getElementById('loadingOverlay');
+  const errorEl = document.getElementById('errorMsg');
+
+  if (!silent) overlay.classList.remove('hidden');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 抓取中';
+  errorEl.style.display = 'none';
+
+  try {
+    const res = await fetch(DATA_API);
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error || '未知错误');
+    renderSpend(json.data);
+    oldSpendData = json.data;
+    const ts = new Date((json.updated_at || Date.now() / 1000) * 1000);
+    document.getElementById('updateTime').textContent =
+      '更新于 ' + ts.toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    document.getElementById('autoTag').textContent = json.cached ? '📦 缓存命中' : '✅ 实时数据';
+  } catch(e) {
+    errorEl.textContent = '❌ ' + e.message;
+    errorEl.style.display = 'block';
+    if (oldSpendData) renderSpend(oldSpendData);
+  } finally {
+    overlay.classList.add('hidden');
+    btn.disabled = false;
+    btn.innerHTML = '🔄 刷新';
+  }
+}
+
+function renderSpend(data) {
+  const map = {
+    '老全品': { cls: 'laopin', detailId: 'detail-laopin' },
+    '新全品': { cls: 'xinpin', detailId: 'detail-xinpin' },
+    '郑瑞':   { cls: 'zhengrui', detailId: 'detail-zhengrui' },
+  };
+
+  for (const item of data) {
+    const cfg = map[item.name];
+    if (!cfg) continue;
+    const card = document.querySelector(`.card.${cfg.cls}`);
+    if (!card) continue;
+    card.querySelector('.cost').textContent = '¥ ' + (item.cost_str || '--');
+    card.querySelector('.price').textContent = '¥ ' + (item.price_str || '--');
+    card.querySelector('.leads').textContent = item.leads != null ? item.leads : '--';
+
+    if (item.details && item.details.length > 0) {
+      const detailEl = document.getElementById(cfg.detailId);
+      detailEl.innerHTML = item.details.map(d =>
+        `<span>${d.name.replace('lk-沈阳','').replace('学而思网校优课','网校').replace('希望名师好课推荐','希望').replace('郑瑞线上化学','郑瑞').replace('甄选视频户','视频').replace('增量户','增量')} ¥${d.cost.toLocaleString()} / ${d.leads}条</span>`
+      ).join('');
+    }
+
+    const vs = card.querySelectorAll('.metric-value');
+    vs.forEach(v => { v.style.transition = 'none'; v.style.transform = 'scale(1)'; });
+    requestAnimationFrame(() => {
+      vs.forEach(v => { v.style.transition = 'transform 0.2s'; v.style.transform = 'scale(1.05)'; });
+      setTimeout(() => { vs.forEach(v => { v.style.transform = 'scale(1)'; }); }, 200);
+    });
+  }
+}
+
+/* ===== 排班数据 ===== */
+function accountClass(name) {
+  if (name.includes('郑瑞')) return 'zr';
+  if (name.includes('希望') || name.includes('好课推荐')) return 'lqp';
+  if (name.includes('甄选')) return 'xqp';
+  return 'other';
+}
+
+function budgetStr(val) {
+  if (val === null || val === undefined) return '∞';
+  if (val >= 1000) return (val / 1000).toFixed(1).replace('.0','') + 'k';
+  return String(val);
+}
+
+function shortName(name) {
+  if (name.includes('郑瑞')) return '郑瑞';
+  if (name.includes('希望') || name.includes('好课推荐')) return '老全品';
+  if (name.includes('甄选')) return '新全品';
+  return name.length > 12 ? name.slice(0,12) + '...' : name;
+}
+
+function renderSchedule(data) {
+  const grid = document.getElementById('scheduleGrid');
+  let accounts = (data && data.accounts) || [];
+
+  if (!accounts.length) {
+    grid.innerHTML = '<div class="sc-card"><div class="sc-empty">暂无排班数据</div></div>';
+    return;
+  }
+
+  // 统一排序：老全品 → 郑瑞 → 新全品
+  const orderMap = { '老全品': 0, '郑瑞': 1, '新全品': 2 };
+  accounts.sort((a, b) => {
+    const sa = shortName(a.name);
+    const sb = shortName(b.name);
+    return (orderMap[sa] ?? 99) - (orderMap[sb] ?? 99);
+  });
+
+  grid.innerHTML = accounts.map(acc => {
+    const teachers = acc.teachers || [];
+    const duty = acc.duty || {};
+    const cls = accountClass(acc.name);
+    const totalB = acc.total_budget;
+
+    // 当前承接人
+    const curName = duty.current || '—';
+    const curStart = duty.current_start ?? 0;
+    const curEnd = duty.current_end ?? (duty.current_budget || 0);
+    const progress = duty.progress || 0;
+
+    // 下一棒
+    const nextName = duty.next || '—';
+    const nextStart = duty.next_start;
+    const nextEnd = duty.next_end;
+
+    // 当前老师显示：预算 + 剩余（结合投放数据）
+    let curBudgetStr = '';
+    if (duty.status === '全天已结束') {
+      curBudgetStr = '全天已结束';
+    } else if (curEnd != null && curEnd >= 999999000) {
+      curBudgetStr = `不限预算（${curStart.toLocaleString()}+）`;
+    } else {
+      const cb = duty.current_budget || 0;
+      const rem = duty.remaining != null ? duty.remaining : cb;
+      curBudgetStr = `预算 ¥${cb.toLocaleString()} | 剩余 ¥${rem.toLocaleString()}`;
+    }
+
+    let progressHtml = '';
+    if (duty.status !== '全天已结束' && curEnd != null && curEnd < 999999000) {
+      progressHtml = `<div class="sc-progress-wrap">
+        <div class="sc-progress-bar"><div class="sc-progress-fill ${cls}" style="width:${progress}%"></div></div>
+        <div class="sc-progress-info"><span>${duty.status || ''}</span><span>${progress}%</span></div>
+      </div>`;
+    }
+
+    // 下一棒显示区间
+    let nextHtml = '';
+    if (nextName && nextName !== '—' && nextName !== '最后一棒' && nextName !== '已结束') {
+      let nextRange = '';
+      if (nextEnd != null && nextEnd < 999999000) {
+        nextRange = `${(nextStart || 0).toLocaleString()}-${nextEnd.toLocaleString()}`;
+      } else if (nextEnd != null) {
+        nextRange = '不限';
+      }
+      nextHtml = `<div class="sc-next-section">
+        <div><span class="sc-next-label">下一棒</span><br><span class="sc-next-name">${nextName}</span></div>
+        <span class="sc-next-budget">${nextRange}</span>
+      </div>`;
+    } else if (nextName === '最后一棒') {
+      nextHtml = `<div class="sc-next-section">
+        <div><span class="sc-next-label">下一棒</span><br><span class="sc-next-name" style="color:#536471">最后一棒</span></div>
+        <span class="sc-next-budget" style="color:#536471">—</span>
+      </div>`;
+    } else if (nextName === '已结束') {
+      nextHtml = `<div class="sc-next-section">
+        <div><span class="sc-next-label" style="color:#e74c3c">全天已结束</span></div>
+      </div>`;
+    }
+
+    // 全部老师列表（默认折叠）— 显示累积区间
+    const allNames = duty.all_teachers || teachers.map(t => t.name);
+    let allListHtml = allNames.map((n, i) => {
+      const isNow = n === curName && duty.status === '进行中';
+      let range = '';
+      if (i < teachers.length) {
+        const t = teachers[i];
+        const prev = i > 0 ? teachers[i - 1].cumulative : 0;
+        if (t.cumulative >= 999999000) {
+          range = `${prev.toLocaleString()}+`;
+        } else {
+          range = `${prev.toLocaleString()}-${t.cumulative.toLocaleString()}`;
+        }
+      }
+      return `<div class="sc-all-item${isNow ? ' now' : ''}">
+        <span class="t-name">${n}</span>
+        <span class="t-budget">${range}</span>
+      </div>`;
+    }).join('');
+
+    let footerHtml = '';
+    if (totalB != null && totalB < 999999000) {
+      footerHtml = `<div class="sc-footer"><span class="total">全天总预算</span><span class="total-val">¥ ${totalB.toLocaleString()}</span></div>`;
+    } else {
+      footerHtml = `<div class="sc-footer"><span class="total">全天总预算</span><span class="total-val">不限</span></div>`;
+    }
+
+    return `<div class="sc-card ${cls}">
+      <div class="sc-card-header">
+        <span class="sc-card-name">${shortName(acc.name)}</span>
+        <span class="sc-card-badge">${acc.teacher_count}人承接</span>
+      </div>
+
+      <div class="sc-current-section">
+        <div class="sc-current-label">🟢 正在接客资</div>
+        <div class="sc-current-name">${curName}</div>
+        <div class="sc-current-budget">${curBudgetStr}</div>
+      </div>
+
+      ${progressHtml}
+      ${nextHtml}
+
+      <div class="sc-all-toggle" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'':'none';this.textContent=this.textContent.startsWith('▼')?'▶ 全部排班 ('+(this.nextElementSibling.children.length)+'棒)':'▼ 收起'">
+        ▶ 全部排班 (${allNames.length}棒)
+      </div>
+      <div class="sc-all-list" style="display:none">${allListHtml}</div>
+
+      ${footerHtml}
+    </div>`;
+  }).join('');
+}
+
+async function refreshSchedule() {
+  try {
+    const res = await fetch(SCHEDULE_API);
+    const json = await res.json();
+    if (json.ok) {
+      oldScheduleData = json.data;
+      renderSchedule(json.data);
+    } else {
+      console.error('Schedule error:', json.error);
+    }
+  } catch(e) {
+    console.error('Schedule fetch error:', e);
+    if (oldScheduleData) renderSchedule(oldScheduleData);
+  }
+}
+
+/* ===== 统一刷新 ===== */
+async function refreshAll() {
+  await Promise.all([refreshSpend(false), refreshSchedule()]);
+}
+
+/* ===== 启动 ===== */
+// 先检查是否有内联快照数据（CloudStudio 部署版），有则秒开
+if (window.__SPEND_DATA__) {
+  renderSpend(window.__SPEND_DATA__);
+  oldSpendData = window.__SPEND_DATA__;
+  document.getElementById('updateTime').textContent =
+    '快照于 ' + (window.__SNAPSHOT_TIME__ || '--');
+  document.getElementById('autoTag').textContent = '🌐 静态快照';
+  document.getElementById('refreshBtn').style.display = 'none';
+}
+if (window.__SCHEDULE_DATA__) {
+  renderSchedule(window.__SCHEDULE_DATA__);
+  oldScheduleData = window.__SCHEDULE_DATA__;
+}
+
+// 本地环境（有 live API）：后台尝试获取实时数据
+var _isLocal = !window.__SPEND_DATA__;
+if (_isLocal) {
+  refreshAll();
+  timer = setTimeout(() => {
+    refreshAll();
+    clearTimeout(timer);
+    timer = setInterval(refreshAll, REFRESH_INTERVAL);
+  }, msUntilNextHour());
+}
+
+countdownTimer = _isLocal ? setInterval(updateCountdown, 1000) : null;
+if (_isLocal) updateCountdown();
+</script>
+</body>
+</html>

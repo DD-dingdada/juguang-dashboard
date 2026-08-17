@@ -208,6 +208,20 @@
   .btn-schedule-refresh:hover { color: #1d9bf0; border-color: #1d9bf0; }
   .btn-schedule-refresh:disabled { opacity: 0.4; cursor: not-allowed; }
 
+  /* 下一棒提醒按钮 */
+  .sc-remind-btn {
+    background: #f59e0b; color: #1a1f26; border: none;
+    padding: 4px 10px; border-radius: 6px; font-size: 12px;
+    font-weight: 600; cursor: pointer; margin-left: 8px;
+    white-space: nowrap; transition: all 0.2s;
+  }
+  .sc-remind-btn:hover:not(:disabled) { background: #fbbf24; }
+  .sc-remind-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+  .sc-remind-btn.ok { background: #10b981 !important; color: #fff; }
+  .sc-remind-btn.err { background: #e74c3c !important; color: #fff; }
+
+  .sc-next-section { gap: 4px; }
+
   /* 进度条 */
   .sc-progress-wrap { margin-top: 10px; }
   .sc-progress-bar {
@@ -232,9 +246,9 @@
   }
 </style>
 <script>
-window.__SPEND_DATA__ = [{"name": "老全品", "cost": 2279.46, "cost_str": "2,279.46", "price": 455.89, "price_str": "455.89", "leads": 5, "color": "#3b82f6", "details": [{"name": "希望名师好课推荐lk-沈阳", "cost": 2279.46, "leads": 5}, {"name": "学而思网校优课lk-沈阳增量户", "cost": 0.0, "leads": 0}]}, {"name": "新全品", "cost": 0.05, "cost_str": "0.05", "price": 0.0, "price_str": "0.00", "leads": 0, "color": "#10b981", "details": [{"name": "学而思网校优课甄选lk-沈阳", "cost": 0.05, "leads": 0}, {"name": "学而思网校优课甄选lk-沈阳视频户", "cost": 0.0, "leads": 0}]}, {"name": "郑瑞", "cost": 1108.74, "cost_str": "1,108.74", "price": 554.37, "price_str": "554.37", "leads": 2, "color": "#f59e0b", "details": [{"name": "郑瑞线上化学lk-沈阳", "cost": 1108.74, "leads": 2}, {"name": "郑瑞线上化学lk-沈阳增量户", "cost": 0.0, "leads": 0}]}];
-window.__SCHEDULE_DATA__ = {"date": "2026-08-17", "row": 265, "accounts": [{"name": "郑瑞线上化学lk-沈阳", "city": "沈阳", "teachers": [{"name": "王家宝", "budget": 2000, "cumulative": 2000}], "total_budget": 2000, "teacher_count": 1, "duty": {"current": "王家宝", "current_start": 0, "current_end": 2000, "current_budget": 2000, "used": 1109, "remaining": 891, "next": "最后一棒", "next_budget": null, "next_start": null, "next_end": null, "progress": 55, "status": "进行中", "all_teachers": ["王家宝"]}, "spend": 1108.74}, {"name": "希望名师好课推荐lk-沈阳", "city": "沈阳", "teachers": [{"name": "汪雪", "budget": 3000, "cumulative": 3000}, {"name": "王男楠", "budget": 3000, "cumulative": 6000}], "total_budget": 6000, "teacher_count": 2, "duty": {"current": "汪雪", "current_start": 0, "current_end": 3000, "current_budget": 3000, "used": 2279, "remaining": 721, "next": "王男楠", "next_budget": 3000, "next_start": 3000, "next_end": 6000, "progress": 76, "status": "进行中", "all_teachers": ["汪雪", "王男楠"]}, "spend": 2279.46}, {"name": "学而思网校优课甄选", "city": "沈阳", "teachers": [], "total_budget": 0, "teacher_count": 0, "duty": {"status": "无排班数据"}, "spend": 0.05}]};
-window.__SNAPSHOT_TIME__ = "2026-08-17 15:00:39";
+window.__SPEND_DATA__ = [{"name": "老全品", "cost": 2295.82, "cost_str": "2,295.82", "price": 459.16, "price_str": "459.16", "leads": 5, "color": "#3b82f6", "details": [{"name": "希望名师好课推荐lk-沈阳", "cost": 2295.82, "leads": 5}, {"name": "学而思网校优课lk-沈阳增量户", "cost": 0.0, "leads": 0}]}, {"name": "新全品", "cost": 0.05, "cost_str": "0.05", "price": 0.0, "price_str": "0.00", "leads": 0, "color": "#10b981", "details": [{"name": "学而思网校优课甄选lk-沈阳", "cost": 0.05, "leads": 0}, {"name": "学而思网校优课甄选lk-沈阳视频户", "cost": 0.0, "leads": 0}]}, {"name": "郑瑞", "cost": 1113.72, "cost_str": "1,113.72", "price": 556.86, "price_str": "556.86", "leads": 2, "color": "#f59e0b", "details": [{"name": "郑瑞线上化学lk-沈阳", "cost": 1113.72, "leads": 2}, {"name": "郑瑞线上化学lk-沈阳增量户", "cost": 0.0, "leads": 0}]}];
+window.__SCHEDULE_DATA__ = {"date": "2026-08-17", "row": 265, "accounts": [{"name": "郑瑞线上化学lk-沈阳", "city": "沈阳", "teachers": [{"name": "王家宝", "budget": 2000, "cumulative": 2000, "work_code": "414183"}], "total_budget": 2000, "teacher_count": 1, "duty": {"current": "王家宝", "current_start": 0, "current_end": 2000, "current_budget": 2000, "used": 1114, "remaining": 886, "next": "最后一棒", "next_budget": null, "next_start": null, "next_end": null, "next_work_code": null, "progress": 56, "status": "进行中", "all_teachers": ["王家宝"]}, "spend": 1113.72}, {"name": "希望名师好课推荐lk-沈阳", "city": "沈阳", "teachers": [{"name": "汪雪", "budget": 3000, "cumulative": 3000, "work_code": "414187"}, {"name": "王男楠", "budget": 3000, "cumulative": 6000, "work_code": "414189"}], "total_budget": 6000, "teacher_count": 2, "duty": {"current": "汪雪", "current_start": 0, "current_end": 3000, "current_budget": 3000, "used": 2296, "remaining": 704, "next": "王男楠", "next_budget": 3000, "next_start": 3000, "next_end": 6000, "next_work_code": "414189", "progress": 77, "status": "进行中", "all_teachers": ["汪雪", "王男楠"]}, "spend": 2295.82}, {"name": "学而思网校优课甄选", "city": "沈阳", "teachers": [], "total_budget": 0, "teacher_count": 0, "duty": {"status": "无排班数据"}, "spend": 0.05}]};
+window.__SNAPSHOT_TIME__ = "2026-08-17 15:18:12";
 </script>
 </head>
 <body>
@@ -494,6 +508,7 @@ function renderSchedule(data) {
 
     // 下一棒显示区间
     let nextHtml = '';
+    const accShort = shortName(acc.name);
     if (nextName && nextName !== '—' && nextName !== '最后一棒' && nextName !== '已结束') {
       let nextRange = '';
       if (nextEnd != null && nextEnd < 999999000) {
@@ -504,6 +519,7 @@ function renderSchedule(data) {
       nextHtml = `<div class="sc-next-section">
         <div><span class="sc-next-label">下一棒</span><br><span class="sc-next-name">${nextName}</span></div>
         <span class="sc-next-budget">${nextRange}</span>
+        <button class="sc-remind-btn" onclick="sendReminder('${accShort}', this)" title="给 ${nextName} 发知音楼私聊提醒">📨 提醒</button>
       </div>`;
     } else if (nextName === '最后一棒') {
       nextHtml = `<div class="sc-next-section">
@@ -703,6 +719,46 @@ async function tryRefreshFromLocal() {
 
 // 本地环境（有 live API）：后台尝试获取实时数据
 var _isLocal = !window.__SPEND_DATA__;
+
+/* ===== 给下一棒老师发知音楼提醒 ===== */
+async function sendReminder(account, btn) {
+  if (!btn) return;
+  const orig = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '⏳ 发送中';
+  btn.classList.remove('ok', 'err');
+
+  // 公网页面走 localhost:5555，本地直连
+  const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? ''
+    : 'http://localhost:5555';
+
+  try {
+    var res = await fetch(apiBase + '/api/send-reminder', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({account: account})
+    });
+    var json = await res.json();
+    if (json.ok) {
+      btn.classList.add('ok');
+      btn.textContent = '✅ 已发送';
+    } else {
+      btn.classList.add('err');
+      btn.textContent = '❌ ' + (json.error || '失败').slice(0, 20);
+    }
+  } catch (e) {
+    btn.classList.add('err');
+    btn.textContent = '❌ 本地API不通';
+  } finally {
+    setTimeout(function() {
+      btn.classList.remove('ok', 'err');
+      btn.disabled = false;
+      btn.textContent = orig;
+    }, 5000);
+  }
+}
+
 if (_isLocal) {
   document.getElementById('refreshBtn').onclick = refreshAll;
   refreshAll();
